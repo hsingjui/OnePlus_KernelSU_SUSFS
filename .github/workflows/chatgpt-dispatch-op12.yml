@@ -31,7 +31,7 @@ jobs:
               "optimize_level": "O2",
               "clean_build": "false",
               "debug": "false",
-              "mirror_toolchains": "false",
+              "mirror_toolchains": "true",
               "build_timestamp": "",
               "android12-5_10_susfs_branch_or_commit": "",
               "android13-5_15_susfs_branch_or_commit": "",
