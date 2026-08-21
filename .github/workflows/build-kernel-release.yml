@@ -33,7 +33,7 @@ on:
         description: 'Enter KernelSU build json'
         required: true
         type: string
-        default: '[{"type":"ksu","hash":"dev"}]'
+        default: '[{"type":"ksu","hash":"main"}]'
       optimize_level:
         description: "Compiler optimization level"
         required: true
@@ -177,7 +177,7 @@ jobs:
               .model == "OP12" and
               .os_version == "A16" and
               .android_version == "android14" and
-              .kernel_version == "6.1.141"
+              .kernel_version == "6.1"
             ))
           ')
           
