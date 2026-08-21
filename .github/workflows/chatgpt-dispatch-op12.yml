@@ -1,0 +1,43 @@
+name: ChatGPT Dispatch OP12 Build
+
+permissions:
+  actions: write
+  contents: read
+
+on:
+  push:
+    branches:
+      - chatgpt-run-op12
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch OP12 KernelSU + SUSFS build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            "/repos/${{ github.repository }}/actions/workflows/build-kernel-release.yml/dispatches" \
+            --input - <<'JSON'
+          {
+            "ref": "main",
+            "inputs": {
+              "make_release": "false",
+              "op_model": "android14-6.1",
+              "ksu_options": "[{\"type\":\"ksu\",\"hash\":\"main\"}]",
+              "optimize_level": "O2",
+              "clean_build": "false",
+              "debug": "false",
+              "mirror_toolchains": "false",
+              "build_timestamp": "",
+              "android12-5_10_susfs_branch_or_commit": "",
+              "android13-5_15_susfs_branch_or_commit": "",
+              "android14-6_1_susfs_branch_or_commit": "",
+              "android15-6_6_susfs_branch_or_commit": "",
+              "android16-6_12_susfs_branch_or_commit": ""
+            }
+          }
+          JSON
