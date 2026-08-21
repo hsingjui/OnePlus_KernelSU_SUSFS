@@ -170,6 +170,8 @@ jobs:
               ;;
           esac
           
+          filtered=$(jq -c "$jq_filter" matrix.json)
+          
           filtered=$(echo "$filtered" | jq -c '
             map(select(
               .model == "OP12" and
@@ -178,6 +180,7 @@ jobs:
               .kernel_version == "6.1.141"
             ))
           ')
+          
           count=$(jq 'length' <<<"$filtered")
           
           filtered=$(echo "$filtered" | jq '
