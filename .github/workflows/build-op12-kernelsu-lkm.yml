@@ -1,0 +1,80 @@
+name: Build OP12 KernelSU LKM
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+    inputs:
+      kernelsu_ref:
+        description: 'KernelSU branch, tag, or commit'
+        required: true
+        type: string
+        default: main
+
+jobs:
+  build-lkm:
+    name: KernelSU LKM (android14-6.1 arm64)
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/ylarod/ddk-min:android14-6.1-20260313
+      options: --privileged
+
+    steps:
+      - name: Checkout KernelSU
+        uses: actions/checkout@v7
+        with:
+          repository: tiann/KernelSU
+          ref: ${{ inputs.kernelsu_ref }}
+          fetch-depth: 0
+
+      - name: Build kernelsu.ko
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          cd kernel
+          CONFIG_KSU=m CC=clang make
+          llvm-strip -d kernelsu.ko
+          mkdir -p "$GITHUB_WORKSPACE/out"
+          cp kernelsu.ko "$GITHUB_WORKSPACE/out/android14-6.1_kernelsu.ko"
+
+      - name: Upload KernelSU LKM
+        uses: actions/upload-artifact@v7
+        with:
+          name: KernelSU_LKM_android14-6.1_arm64
+          path: out/android14-6.1_kernelsu.ko
+          archive: false
+          compression-level: 0
+          retention-days: 90
+
+  manager:
+    name: KernelSU Manager APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download official Manager APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p out
+          gh release download \
+            --repo tiann/KernelSU \
+            --pattern '*.apk' \
+            --dir out
+          apk_count=$(find out -maxdepth 1 -type f -name '*.apk' | wc -l)
+          if [ "$apk_count" -lt 1 ]; then
+            echo '::error::No KernelSU Manager APK found in the latest official release'
+            exit 1
+          fi
+          ls -lh out/*.apk
+
+      - name: Upload KernelSU Manager APK
+        uses: actions/upload-artifact@v7
+        with:
+          name: KernelSU_Manager_APK
+          path: out/*.apk
+          archive: false
+          compression-level: 0
+          retention-days: 90
